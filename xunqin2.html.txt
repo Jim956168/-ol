@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>寻秦OL·无敌单机版</title>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;padding:12px;background:#0b0e14;color:#d8dce6;font-family:"SimSun","Microsoft YaHei",system-ui,sans-serif;}
+.game{max-width:720px;margin:0 auto;background:#111520;border:2px solid #3a3f4b;border-radius:14px;overflow:hidden;}
+.title{background:linear-gradient(180deg,#1c2130,#111520);padding:12px;text-align:center;font-size:20px;color:#f5c542;border-bottom:1px solid #2a2f3a;}
+.tabs{display:flex;background:#0f131a;border-bottom:1px solid #2a2f3a;overflow-x:auto;}
+.tab{padding:10px 14px;cursor:pointer;color:#9aa3b5;border-right:1px solid #1e2330;white-space:nowrap;}
+.tab.active{background:#171b26;color:#f5c542;border-bottom:2px solid #f5c542;}
+.panel{display:none;padding:12px;}
+.panel.active{display:block;}
+.box{background:#151923;border:1px solid #2a2f3a;border-radius:10px;padding:12px;margin-bottom:12px;}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+button{background:#1c2130;color:#f5c542;border:1px solid #f5c542;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px;}
+button:active{opacity:.7;}
+.small{font-size:13px;color:#9aa3b5;}
+.gold{color:#f5c542;}
+.red{color:#ff6b6b;}
+.green{color:#5eead4;}
+.blue{color:#60a5fa;}
+.log{max-height:240px;overflow-y:auto;background:#0f131a;border:1px solid #2a2f3a;border-radius:8px;padding:10px;font-size:14px;line-height:1.7;}
+.bar{height:8px;background:#1c2130;border-radius:6px;margin-top:4px;}
+.bar span{display:block;height:100%;border-radius:6px;background:#5eead4;width:100%;}
+.item{background:#181d28;border:1px solid #2a2f3a;border-radius:8px;padding:8px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="game">
+<div class="title">寻秦OL · 无敌单机版</div>
+
+<div class="tabs">
+<div class="tab active" onclick="showTab('hero')">角色</div>
+<div class="tab" onclick="showTab('story')">剧情</div>
+<div class="tab" onclick="showTab('battle')">战斗</div>
+<div class="tab" onclick="showTab('pet')">宠物</div>
+<div class="tab" onclick="showTab('equip')">装备</div>
+<div class="tab" onclick="showTab('task')">抓鬼</div>
+<div class="tab" onclick="showTab('trade')">跑商</div>
+<div class="tab" onclick="showTab('gang')">帮派</div>
+</div>
+
+<!-- 角色 -->
+<div class="panel active" id="p-hero">
+<div class="box" id="startBox">
+<p>选择职业：</p>
+<div class="row">
+<button onclick="startGame('墨家猛士')">墨家猛士</button>
+<button onclick="startGame('道家琴魔')">道家琴魔</button>
+<button onclick="startGame('阴阳罗刹')">阴阳罗刹</button>
+<button onclick="startGame('兵家战将')">兵家战将</button>
+<button onclick="startGame('纵横剑客')">纵横剑客</button>
+<button onclick="startGame('医仙谷主')">医仙谷主</button>
+</div>
+<p class="small">墨家攻高，道家均衡，阴阳暴击强，兵家血厚，纵横连击高，医仙回血强。</p>
+</div>
+<div class="box" id="heroBox" style="display:none;">
+<div class="row">
+<div>职业：<span id="hSect" class="gold"></span></div>
+<div>等级：<span id="hLv" class="gold">1</span></div>
+</div>
+<div>生命：<span id="hHp"></span></div>
+<div class="bar"><span id="hHpBar"></span></div>
+<div class="row">
+<div>攻击：<span id="hAtk" class="red"></span></div>
+<div>防御：<span id="hDef"></span></div>
+</div>
+<div>经验：<span id="hExp"></span></div>
+<div class="bar"><span id="hExpBar"></span></div>
+<div class="row">
+<div>银两：<span id="hSilver" class="gold"></span></div>
+<div>宝石：<span id="hGem" class="blue"></span></div>
+</div>
+<div class="row">
+<button onclick="rest()">休息回血</button>
+<button onclick="resetGame()">重新开始</button>
+</div>
+</div>
+</div>
+
+<!-- 剧情 -->
+<div class="panel" id="p-story">
+<div class="box">
+<p>项少龙剧情进度：<span id="storyStep" class="gold">未开始</span></p>
+<div id="storyText" class="small">选择职业后开启剧情。</div>
+<div class="row">
+<button onclick="nextStory()">继续剧情</button>
+</div>
+</div>
+</div>
+
+<!-- 战斗 -->
+<div class="panel" id="p-battle">
+<div class="box">
+<div class="row">
+<button onclick="autoFight()">自动刷怪</button>
+<button onclick="dungeon()">闯副本</button>
+</div>
+<p class="small">自动刷怪会一直战斗，再点一次停止。</p>
+</div>
+</div>
+
+<!-- 宠物 -->
+<div class="panel" id="p-pet">
+<div class="box">
+<div class="row">
+<button onclick="catchPet()">抓宠物</button>
+<button onclick="petFight()">宠物出战</button>
+</div>
+<div id="petList"></div>
+</div>
+</div>
+
+<!-- 装备 -->
+<div class="panel" id="p-equip">
+<div class="box">
+<div class="row">
+<button onclick="forgeEquip()">打造装备</button>
+<button onclick="forgeGem()">镶嵌宝石</button>
+</div>
+<div id="equipList"></div>
+</div>
+</div>
+
+<!-- 抓鬼 -->
+<div class="panel" id="p-task">
+<div class="box">
+<p>今日抓鬼：<span id="ghostCount" class="gold">0</span>/10</p>
+<div class="row">
+<button onclick="catchGhost()">抓鬼一次</button>
+<button onclick="catchGhost10()">连抓十次</button>
+</div>
+</div>
+</div>
+
+<!-- 跑商 -->
+<div class="panel" id="p-trade">
+<div class="box">
+<p>当前货物：<span id="tradeGoods" class="gold">无</span></p>
+<div class="row">
+<button onclick="buyGoods()">低价进货</button>
+<button onclick="sellGoods()">高价卖出</button>
+</div>
+<p class="small">低买高卖赚银两，每次价格随机。</p>
+</div>
+</div>
+
+<!-- 帮派 -->
+<div class="panel" id="p-gang">
+<div class="box">
+<p>帮派：<span id="gangName" class="gold">无</span></p>
+<p>帮派贡献：<span id="gangPoint" class="gold">0</span></p>
+<div class="row">
+<button onclick="joinGang()">加入帮派</button>
+<button onclick="gangTask()">帮派任务</button>
+<button onclick="gangBuff()">帮派修炼</button>
+</div>
+</div>
+</div>
+
+<div class="log" id="log"></div>
+</div>
+
+<script>
+let hero={sect:'',lv:1,hp:120,maxHp:120,atk:16,def:8,exp:0,needExp:60,silver:200,gem:0,atkBonus:0,defBonus:0,hpBonus:0};
+let pets=[];
+let petFightOn=false;
+let equip=[];
+let storyIndex=0;
+let ghostDone=0;
+let tradeItem=null;
+let gang="";
+let gangPt=0;
+let fighting=false;
+let timer=null;
+
+const story=[
+"项少龙从时空机器坠入战国，身边只有一块破损的通讯器。",
+"你在邯郸城外遇见项少龙，他请你帮忙寻找失踪的赵盘。",
+"你们潜入赵国军营，发现吕不韦的人正在暗中布局。",
+"项少龙传授你机关术，你的攻击和防御得到提升。",
+"你们护送赵盘前往秦国，途中遭遇阴阳家刺客。",
+"项少龙识破连晋阴谋，你获得稀有宝石。",
+"咸阳宫中，项少龙需要你击败吕不韦的暗卫。",
+"你与项少龙并肩作战，秦国局势逐渐明朗。",
+"项少龙决定隐居，将一把古剑赠予你。",
+"寻秦主线完成。你已成为乱世中的无敌侠客。"
+];
+
+const monsters=[
+{name:'山贼',hp:40,atk:6,exp:12,silver:10},
+{name:'秦兵',hp:80,atk:12,exp:22,silver:18},
+{name:'墨家叛徒',hp:130,atk:18,exp:38,silver:28},
+{name:'阴阳术士',hp:200,atk:26,exp:60,silver:45},
+{name:'项羽亲卫',hp:320,atk:35,exp:90,silver:70},
+{name:'吕不韦暗卫',hp:500,atk:48,exp:160,silver:130}
+];
+
+const petNames=['小黑犬','青鸾','玄武龟','墨家机关兽','逆天魔龙幼崽','白虎战宠'];
+const equipNames=['青铜剑','墨家机关刃','玄铁甲','连珠弩','少龙古剑','秦玉佩'];
+const gemNames=['攻击宝石','生命宝石','防御宝石','暴击宝石'];
+
+function log(t){
+let d=document.getElementById('log');
+d.innerHTML+='<div>'+t+'</div>';
+d.scrollTop=d.scrollHeight;
+}
+
+function showTab(name){
+document.querySelectorAll('.tab').forEach((t,i)=>{
+t.classList.toggle('active',t.textContent===tabLabel(name));
+});
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+document.getElementById('p-'+name).classList.add('active');
+}
+
+function tabLabel(k){
+return {hero:'角色',story:'剧情',battle:'战斗',pet:'宠物',equip:'装备',task:'抓鬼',trade:'跑商',gang:'帮派'}[k]||k;
+}
+
+function startGame(sect){
+hero.sect=sect;
+if(sect==='墨家猛士'){hero.atk=20;hero.maxHp=120;}
+if(sect==='道家琴魔'){hero.atk=17;hero.maxHp=130;}
+if(sect==='阴阳罗刹'){hero.atk=19;hero.maxHp=120;}
+if(sect==='兵家战将'){hero.atk=16;hero.maxHp=160;hero.def=12;}
+if(sect==='纵横剑客'){hero.atk=18;hero.maxHp=125;}
+if(sect==='医仙谷主'){hero.atk=14;hero.maxHp=140;}
+hero.hp=hero.maxHp;
+document.getElementById('startBox').style.display='none';
+document.getElementById('heroBox').style.display='block';
+log('你踏入战国乱世，职业【'+sect+'】，获得无敌之身。');
+refresh();
+}
+
+function refresh(){
+document.getElementById('hSect').textContent=hero.sect||'未选择';
+document.getElementById('hLv').textContent=hero.lv;
+document.getElementById('hHp').textContent=hero.hp+'/'+hero.maxHp;
+document.getElementById('hHpBar').style.width=Math.min(100,hero.hp/hero.maxHp*100)+'%';
+document.getElementById('hAtk').textContent=hero.atk+hero.atkBonus;
+document.getElementById('hDef').textContent=hero.def+hero.defBonus;
+document.getElementById('hExp').textContent=hero.exp+'/'+hero.needExp;
+document.getElementById('hExpBar').style.width=Math.min(100,hero.exp/hero.needExp*100)+'%';
+document.getElementById('hSilver').textContent=hero.silver;
+document.getElementById('hGem').textContent=hero.gem;
+document.getElementById('storyStep').textContent=storyIndex===0?'未开始':'第'+storyIndex+'/'+story.length+'章';
+document.getElementById('storyText').textContent=storyIndex>0?story[storyIndex-1]:'选择职业后开启剧情。';
+document.getElementById('ghostCount').textContent=ghostDone;
+document.getElementById('tradeGoods').textContent=tradeItem?tradeItem.name+'（进价'+tradeItem.cost+'）':'无';
+document.getElementById('gangName').textContent=gang||'无';
+document.getElementById('gangPoint').textContent=gangPt;
+
+let pl=document.getElementById('petList');
+pl.innerHTML=pets.length?pets.map(p=>'<div class="item">'+p.name+' Lv.'+p.lv+'</div>').join(''):'<p class="small">暂无宠物。</p>';
+if(petFightOn) pl.innerHTML+='<p class="green">当前宠物已出战。</p>';
+
+let el=document.getElementById('equipList');
+el.innerHTML=equip.length?equip.map(e=>'<div class="item">'+e.name+' +'+e.lv+'</div>').join(''):'<p class="small">暂无装备。</p>';
+}
+
+function addExp(n){
+hero.exp+=n;
+while(hero.exp>=hero.needExp){
+hero.lv++;
+hero.exp-=hero.needExp;
+hero.needExp=Math.floor(hero.needExp*1.4);
+hero.maxHp+=18;
+hero.hp=hero.maxHp;
+hero.atk+=4;
+hero.def+=2;
+log('升级！当前等级'+hero.lv+'。');
+}
+}
+
+function autoFight(){
+if(!hero.sect){log('请先选择职业。');return;}
+if(fighting){clearInterval(timer);fighting=false;log('已停止刷怪。');return;}
+fighting=true;
+log('开始自动刷怪……');
+timer=setInterval(()=>{
+if(!fighting)return;
+let m={...monsters[Math.min(monsters.length-1,Math.floor((hero.lv-1)/5))]};
+let dmg=hero.atk+hero.atkBonus+pets.length*4+(petFightOn?8:0);
+m.hp-=dmg;
+log('你攻击【'+m.name+'】，造成'+dmg+'伤害。');
+if(m.hp<=0){
+addExp(m.exp);
+hero.silver+=m.silver;
+log('击败【'+m.name+'】，经验+'+m.exp+'，银两+'+m.silver+'。');
+}else{
+let hit=Math.max(1,m.atk-hero.def-hero.defBonus);
+hero.hp-=hit;
+log('【'+m.name+'】反击，你受到'+hit+'伤害。');
+}
+if(hero.hp<=0){hero.hp=hero.maxHp;log('无敌触发！生命回满。');}
+refresh();
+},900);
+}
+
+function dungeon(){
+if(!hero.sect){log('请先选择职业。');return;}
+let m={name:'吕不韦暗卫',hp:220+hero.lv*50,atk:22+hero.lv*6,exp:120+hero.lv*25,silver:90+hero.lv*12};
+let dmg=(hero.atk+hero.atkBonus)*2+pets.length*6+(petFightOn?10:0);
+m.hp-=dmg;
+log('副本挑战【'+m.name+'】，你造成'+dmg+'伤害。');
+if(m.hp<=0){
+addExp(m.exp);
+hero.silver+=m.silver;
+hero.gem+=1;
+log('副本通关！经验+'+m.exp+'，银两+'+m.silver+'，宝石+1。');
+}else{
+hero.hp-=Math.max(1,m.atk-hero.def-hero.defBonus);
+log('【'+m.name+'】反击，你受到'+Math.max(1,m.atk-hero.def-hero.defBonus)+'伤害。');
+}
+if(hero.hp<=0){hero.hp=hero.maxHp;log('无敌触发！生命回满。');}
+refresh();
+}
+
+function catchPet(){
+if(Math.random()<0.5){
+let p={name:petNames[Math.floor(Math.random()*petNames.length)],lv:1};
+pets.push(p);
+log('捕捉成功！获得宠物【'+p.name+'】。');
+}else{
+log('宠物逃走了。');
+}
+refresh();
+}
+
+function petFight(){
+if(!pets.length){log('还没有宠物。');return;}
+petFightOn=!petFightOn;
+log(petFightOn?'宠物已出战，战斗加成提升。':'宠物已收回。');
+refresh();
+}
+
+function forgeEquip(){
+if(hero.silver<100){log('银两不足，需要100银两。');return;}
+hero.silver-=100;
+let e={name:equipNames[Math.floor(Math.random()*equipNames.length)],lv:1};
+equip.push(e);
+hero.atkBonus+=3;
+hero.defBonus+=2;
+hero.hpBonus+=20;
+hero.maxHp+=20;
+log('打造成功！获得【'+e.name+'】，攻击+3，防御+2，生命+20。');
+refresh();
+}
+
+function forgeGem(){
+if(hero.gem<1){log('宝石不足。');return;}
+hero.gem-=1;
+let g=gemNames[Math.floor(Math.random()*gemNames.length)];
+if(g==='攻击宝石')hero.atkBonus+=5;
+if(g==='生命宝石'){hero.hpBonus+=30;hero.maxHp+=30;}
+if(g==='防御宝石')hero.defBonus+=4;
+if(g==='暴击宝石')hero.atkBonus+=7;
+log('镶嵌【'+g+'】成功！');
+refresh();
+}
+
+function catchGhost(){
+if(ghostDone>=10){log('今日抓鬼已完成。');return;}
+let exp=40+hero.lv*10;
+let silver=30+hero.lv*8;
+addExp(exp);
+hero.silver+=silver;
+ghostDone++;
+log('抓鬼成功！经验+'+exp+'，银两+'+silver+'。');
+refresh();
+}
+
+function catchGhost10(){
+for(let i=0;i<10;i++){
+if(ghostDone>=10)break;
+let exp=40+hero.lv*10;
+let silver=30+hero.lv*8;
+addExp(exp);
+hero.silver+=silver;
+ghostDone++;
+}
+log('连续抓鬼完成。');
+refresh();
+}
+
+function buyGoods(){
+if(tradeItem){log('身上已有货物，先卖出。');return;}
+let cost=50+Math.floor(Math.random()*80);
+if(hero.silver<cost){log('银两不足。');return;}
+hero.silver-=cost;
+tradeItem={name:'秦地丝绸',cost:cost};
+log('花费'+cost+'银两购入【秦地丝绸】。');
+refresh();
+}
+
+function sellGoods(){
+if(!tradeItem){log('没有货物可卖。');return;}
+let price=tradeItem.cost+Math.floor(Math.random()*120)-20;
+hero.silver+=price;
+let profit=price-tradeItem.cost;
+log('卖出【'+tradeItem.name+'】，获得'+price+'银两，利润'+profit+'。');
+tradeItem=null;
+refresh();
+}
+
+function joinGang(){
+if(gang){log('已加入帮派。');return;}
+gang='墨家机关城';
+log('你加入【墨家机关城】。');
+refresh();
+}
+
+function gangTask(){
+if(!gang){log('请先加入帮派。');return;}
+gangPt+=10;
+hero.silver+=20;
+addExp(15);
+log('完成帮派任务，贡献+10，银两+20，经验+15。');
+refresh();
+}
+
+function gangBuff(){
+if(gangPt<30){log('帮派贡献不足30。');return;}
+gangPt-=30;
+hero.atkBonus+=2;
+hero.defBonus+=2;
+hero
+
+[(doc_common_card_1)]
+
+---
+代码还没输出完，要继续发剩下的部分吗？
+[[inline_action_reply_1]]
